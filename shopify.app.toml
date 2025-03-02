@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "0eed5368581a74329b8f951970d6fdf1"
-application_url = "https://uganda-meaningful-haiti-tiger.trycloudflare.com"
+application_url = "https://collapse-picked-que-lance.trycloudflare.com"
 embedded = true
 name = "countx"
 handle = "countx"
@@ -27,9 +27,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://uganda-meaningful-haiti-tiger.trycloudflare.com/auth/callback",
-  "https://uganda-meaningful-haiti-tiger.trycloudflare.com/auth/shopify/callback",
-  "https://uganda-meaningful-haiti-tiger.trycloudflare.com/api/auth/callback"
+  "https://collapse-picked-que-lance.trycloudflare.com/auth/callback",
+  "https://collapse-picked-que-lance.trycloudflare.com/auth/shopify/callback",
+  "https://collapse-picked-que-lance.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
