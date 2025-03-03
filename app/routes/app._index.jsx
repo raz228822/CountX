@@ -35,13 +35,21 @@ export const loader = async ({ request }) => {
 export const action = async ({ request }) => {
   console.log("🔹 Action function called!");
 
-  const { admin } = await authenticate.admin(request);
+  // const { admin } = await authenticate.admin(request);
+  const url = new URL(request.url);
+  const shop = url.searchParams.get("shop");
   const formData = new URLSearchParams(await request.text());
   const text = formData.get("text");
+  const date = formData.get("date");
+  const time = formData.get("time");
+
+  const dateObject = new Date(date)
 
   console.log("📩 Received text:", text);
+  console.log("🕒 Received date:", date);
+  console.log("🕒 Received time:", time);
 
-  await saveCounterToDatabase(text);
+  await saveCounterToDatabase({text, dateObject, time, shop});
   
   return { success: true };
 };
@@ -56,32 +64,9 @@ export default function Index() {
     ["loading", "submitting"].includes(fetcher.state) &&
     fetcher.formMethod === "POST";
 
-  const [value, setValue] = useState('');
-  const handleChange = useCallback((newValue) => setValue(newValue),[])
-
-  // // Date picker
-  // const today = new Date();
-  // const [{month, year}, setDate] = useState({
-  //   month: today.getMonth(), 
-  //   year: today.getFullYear(),
-  // });
-
-  // // Polaris DatePicker always returns an object { start, end },
-  // // even for single-date selections(in single they will both be the same date).
-  // const [selectedDate, setSelectedDate] = useState(new Date());
-
-
-
-  const yesterday = useMemo(() => {
-    const date = new Date();
-    date.setDate(date.getDate() - 1);
-    return date;
-  }, []);
-
-  // const handleMonthChange = useCallback(
-  //   (month, year) => setDate({month, year}),
-  //   [],
-  // );
+  // Text field
+  const [text, setText] = useState('');
+  const handleChange = useCallback((newText) => setText(newText),[])
 
 
   // Date picker
@@ -91,13 +76,14 @@ export default function Index() {
     month: selectedDate.getMonth(),
     year: selectedDate.getFullYear(),
   });
-  const formattedValue = selectedDate.toISOString().slice(0, 10);
-  const datePickerRef = useRef(null);
-  function isNodeWithinPopover(node) {
-    return datePickerRef?.current
-      ? nodeContainsDescendant(datePickerRef.current, node)
-      : false;
-  }
+  const formattedDate = selectedDate.toLocaleDateString('en-CA');
+
+  const yesterday = useMemo(() => {
+    const date = new Date();
+    date.setDate(date.getDate() - 1);
+    return date;
+  }, []);
+
   function handleInputValueChange() {
     console.log("handleInputValueChange");
   }
@@ -120,6 +106,7 @@ export default function Index() {
     }
   }, [selectedDate]);
 
+
   // Time picker
   const [selectedHour, setSelectedHour] = useState("12");
   const [selectedMinute, setSelectedMinute] = useState("00");
@@ -132,11 +119,25 @@ export default function Index() {
   const handlePeriodChange = (value) => setSelectedPeriod(value);
 
   const hours = Array.from({ length: 12 }, (_, i) => ({ label: `${i + 1}`, value: `${i + 1}` }));
-  const minutes = Array.from({ length: 60 }, (_, i) => ({ label: i < 10 ? `0${i}` : `${i}`, value: i < 10 ? `0${i}` : `${i}` }));
+  const minutes = Array.from({ length: 12 }, (_, i) => ({ label: i*5 < 10 ? `0${i*5}` : `${i*5}`, value: i*5 < 10 ? `0${i*5}` : `${i*5}` }));
   const periods = [
     { label: "AM", value: "AM" },
     { label: "PM", value: "PM" },
   ];
+
+  const resetState = () => {
+    setText('');
+    setSelectedDate(new Date());
+    setSelectedHour("12");
+    setSelectedMinute("00");
+    setSelectedPeriod("AM");
+  };
+
+  useEffect(() => {
+    if (fetcher.data?.success) {
+      resetState();  // Reset state after successful form submission
+    }
+  }, [fetcher.data]);  // Trigger on successful response
   
 
   return (
@@ -157,7 +158,7 @@ export default function Index() {
                     </Text>
                     <Box width="500px">
                       <TextField
-                        value={value}
+                        value={text}
                         onChange={handleChange}
                         autoComplete="off"
                         name="text"
@@ -165,24 +166,6 @@ export default function Index() {
                       />
                     </Box>
                   </BlockStack>
-
-                  {/* Date picker */}
-                  {/* <BlockStack gap="200">
-                      <Text as="h3" variant="headingMd">
-                        Choose end date
-                      </Text>
-                      <Text as="h4" variant="bodyMd">
-                        Set the final date for your countdown
-                      </Text>
-                        <DatePicker
-                          month={month}
-                          year={year}
-                          onChange={(date) => setSelectedDate(date)}
-                          onMonthChange={handleMonthChange}
-                          selected={selectedDate}
-                          disableDatesBefore={yesterday}
-                        /> 
-                  </BlockStack> */}
 
                   <BlockStack inlineAlign="start" gap="200">
                     <Text as="h3" variant="headingMd">
@@ -203,14 +186,14 @@ export default function Index() {
                             role="combobox"
                             label={"Set the final date for your countdown"}
                             prefix={<Icon source={CalendarIcon} />}
-                            value={formattedValue}
+                            value={formattedDate}
                             onFocus={() => setVisible(true)}
                             onChange={handleInputValueChange}
                             autoComplete="off"
                           />
                         }
                       >
-                        <Card ref={datePickerRef}>
+                        <Card>
                           <DatePicker
                             month={month}
                             year={year}
@@ -223,22 +206,6 @@ export default function Index() {
                       </Popover>
                     </Box>
                   </BlockStack>
-
-                  {/* Countdown time
-                  <BlockStack inlineAlign="start" gap="200">
-                    <Text as="h4" variant="headingMd">
-                      Enter time
-                    </Text>
-                    <Box width="500px">
-                      <TextField
-                        label="Set the time for your countdown"
-                        value={timeInput}
-                        onChange={handleTimeChange}
-                        placeholder="e.g. 10:30 AM, 14:00, midnight"
-                        autoComplete="off"
-                      />
-                    </Box>
-                  </BlockStack> */}
 
                   <BlockStack gap="200">
                     <Text as="h4" variant="headingMd">
@@ -254,6 +221,10 @@ export default function Index() {
                       </Box>
                     </Popover>
                   </BlockStack>
+
+                  {/* Hidden input to store selected date and time */}
+                  <input type="hidden" name="date" value={formattedDate} />
+                  <input type="hidden" name="time" value={`${selectedHour}:${selectedMinute} ${selectedPeriod}`} />
                   
                   <BlockStack inlineAlign="center" gap="200">
                     <Button

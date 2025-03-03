@@ -1,3 +1,4 @@
+import { timeEnd } from "console";
 import { MongoClient } from "mongodb";
 // import prisma from '../../app/db.server'
 
@@ -11,14 +12,15 @@ if (!clientPromise) {
 }
 
 
-export async function saveCounterToDatabase(text) {
+export async function saveCounterToDatabase({text, dateObject, time, shop}) {
   try {
     const result = await prisma.countdown.create({
       data: {
         text, // The sale text input by the user
-        endDate: new Date(),  // Example: Set a default end date, modify as needed
+        date: dateObject,
+        time: time,
         createdAt: new Date(), // Current time for createdAt
-        shop: "my_shop_test"
+        shop: shop
       },
     });
 

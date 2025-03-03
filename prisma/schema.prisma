@@ -16,7 +16,8 @@ datasource db {
 model Countdown {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   text      String
-  endDate   DateTime
+  date   DateTime
+  time   String
   createdAt DateTime @default(now())
   shop      String
 }
