@@ -9,13 +9,23 @@ generator client {
 // enough when changing adapters.
 // See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
 datasource db {
-  provider = "sqlite"
-  url      = "file:dev.sqlite"
+  provider = "mongodb"
+  url      = env("MONGO_URI")
+}
+
+model Countdown {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  text      String
+  date   DateTime
+  time   String
+  createdAt DateTime @default(now())
+  shop      String
 }
 
 model Session {
-  id            String    @id
-  shop          String
+  session_id    String    @id @default(auto()) @map("_id") @db.ObjectId
+  id            String    @unique
+  shop          String    
   state         String
   isOnline      Boolean   @default(false)
   scope         String?
