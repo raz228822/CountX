@@ -14,12 +14,12 @@ datasource db {
 }
 
 model Countdown {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  text      String
-  date   DateTime
-  time   String
-  createdAt DateTime @default(now())
-  shop      String
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  text          String
+  date          DateTime
+  time          String
+  createdAt     DateTime @default(now())
+  shop          String
 }
 
 model Session {

@@ -1,6 +1,6 @@
 import { timeEnd } from "console";
 import { MongoClient } from "mongodb";
-// import prisma from '../../app/db.server'
+import prisma from '../../app/db.server'
 
 const uri = process.env.MONGO_URI;
 let client;
