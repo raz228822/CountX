@@ -94,7 +94,13 @@ export default function Index() {
     fetcher.formMethod === "POST";
 
   const [text, setText] = useState('');
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const now = new Date();
+    now.setDate(now.getDate() + 1); // Move to tomorrow
+    // now.setHours(0, 0, 0, 0); // Set to 12:00 AM
+    return now;
+  });
+  
   const [selectedHour, setSelectedHour] = useState("12");
   const [selectedMinute, setSelectedMinute] = useState("00");
   const [selectedPeriod, setSelectedPeriod] = useState("AM");
@@ -110,38 +116,44 @@ export default function Index() {
 
 
 
-  const startCountdown = () => {
-    // Set the target time based on selected date and time
-    const targetDate = new Date(selectedDate);
-    targetDate.setHours(parseInt(selectedHour) + (selectedPeriod === "PM" ? 12 : 0), parseInt(selectedMinute), 0, 0);
-
+  useEffect(() => {
     if (intervalId) {
-      clearInterval(intervalId); // Clear previous interval if any
+      clearInterval(intervalId); // Clear previous interval
     }
-
+  
+    const targetDate = new Date(selectedDate);
+    let hours = parseInt(selectedHour);
+  
+    // Correct handling of AM/PM
+    if (selectedPeriod === "AM" && hours === 12) {
+      hours = 0; // Midnight (12 AM) should be 0 hours
+    } else if (selectedPeriod === "PM" && hours !== 12) {
+      hours += 12; // Convert PM times to 24-hour format (12 PM remains 12)
+    }
+  
+    // Set the time to the selected hour, minute, and reset the seconds/milliseconds
+    targetDate.setHours(hours, parseInt(selectedMinute), 0, 0);
+  
     const newIntervalId = setInterval(() => {
       const currentTime = new Date();
       const timeDifference = targetDate - currentTime;
-
+  
       if (timeDifference <= 0) {
         clearInterval(newIntervalId);
         setRemainingTime("Time's up!");
       } else {
-        const hours = Math.floor(timeDifference / (1000 * 60 * 60));
-        const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
-        setRemainingTime(`${hours}:${minutes < 10 ? `0${minutes}` : minutes}:${seconds < 10 ? `0${seconds}` : seconds}`);
+        const hoursLeft = Math.floor(timeDifference / (1000 * 60 * 60));
+        const minutesLeft = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+        const secondsLeft = Math.floor((timeDifference % (1000 * 60)) / 1000);
+        setRemainingTime(`${hoursLeft}:${minutesLeft < 10 ? `0${minutesLeft}` : minutesLeft}:${secondsLeft < 10 ? `0${secondsLeft}` : secondsLeft}`);
       }
     }, 1000);
-
-    setIntervalId(newIntervalId); // Store the interval ID
-  };
-
-  // Automatically start the countdown when the date and time are selected
-  useEffect(() => {
-    startCountdown();
-  }, [selectedDate, selectedHour, selectedMinute, selectedPeriod]); // Trigger when the time or date changes
-
+  
+    setIntervalId(newIntervalId);
+  
+    return () => clearInterval(newIntervalId); // Cleanup on unmount or rerun
+  }, [selectedDate, selectedHour, selectedMinute, selectedPeriod]);
+  
   
 
   const [visible, setVisible] = useState(false);
@@ -196,7 +208,11 @@ export default function Index() {
 
   const resetState = () => {
     setText('');
-    setSelectedDate(new Date());
+    setSelectedDate(() => {
+      const now = new Date();
+      now.setDate(now.getDate() + 1); // Move to tomorrow
+      return now;
+    });
     setSelectedHour("12");
     setSelectedMinute("00");
     setSelectedPeriod("AM");
