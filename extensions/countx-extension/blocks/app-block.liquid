@@ -1,0 +1,43 @@
+{% comment %} {% assign avg_rating = block.settings.product.metafields.demo.avg_rating.value | round %}
+<span style="color:{{ block.settings.colour }}">
+  {% render 'stars', rating: avg_rating %}
+</span>
+{% if avg_rating >= 4 %}
+  <br>
+  <img src="{{ "thumbs-up.png" | asset_img_url: '15x' }}" height="15" width="15" loading="lazy">
+  {{ 'ratings.home.recommendationText' | t }}
+{% endif %}
+
+{% schema %}
+{
+  "name": "Star Rating",
+  "target": "section",
+  "settings": [
+    { "type": "product", "id": "product", "label": "product", "autofill": true },
+    { "type": "color", "id": "colour", "label": "Star Colour", "default": "#ff0000" }
+  ]
+}
+{% endschema %}
+ {% endcomment %}
+
+
+<!-- This is your custom block, with countdown functionality -->
+<div class="countdown-widget">
+  <div class="countdown-text">raz</div>
+  <div class="countdown-display">test</div>
+  <div id="loader" style="display: none;">Loading...</div>
+</div>
+
+{% schema %}
+{
+  "name": "Countdown Widget",
+  "target": "section",
+  "stylesheet": "countdown.css",
+  "javascript": "countdown.js",
+  "settings": []
+}
+{% endschema %}
+
+<!-- Manually include JavaScript and CSS -->
+{{ 'countdown.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'countdown.js' | asset_url }}" defer></script>

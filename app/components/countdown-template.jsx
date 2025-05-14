@@ -1,36 +1,25 @@
-import { useState, useEffect } from 'react';
-import { Card, Text, Button, Layout, Page, BlockStack } from '@shopify/polaris';
-import { getCountdownDetails } from '../api/get-countdown'; // Import your API function
+import { 
+  Card,
+  Text,
+  BlockStack
+} from '@shopify/polaris';
 
-const CountdownTemplate = () => {
-  console.log("CountdownTemplate component rendering");
-  useEffect(() => {
-    console.log("useEffect triggered");
-  }, []);
+const CountdownTemplate = ({
+  text,
+  remainingTime
+}) => {
   
   return (
-    <Page>
-      <Layout>
-        <Layout.Section>
-          <Card title="Your Countdown" sectioned>
-              <BlockStack vertical spacing="tight">
-                <Text variant="headingMd" as="h2">
-                  text
-                </Text>
-                <Text variant="bodyMd">
-                  Date: date
-                </Text>
-                <Text variant="bodyMd">
-                  Time: raz
-                </Text>
-                <Button onClick={() => alert('Countdown triggered')}>
-                  Trigger Countdown
-                </Button>
-              </BlockStack>
-            </Card>
-        </Layout.Section>
-      </Layout>
-    </Page>
+      <Card title="Countdown Timer">
+          <BlockStack align="end">
+            <Text variant="headingLg" as="h2" align="center">
+              {text || "Enter text for your countdown"}
+            </Text>
+            <Text variant="headingMd" as="h3" align="center">
+              {remainingTime}
+            </Text>
+          </BlockStack>
+      </Card>
   );
 };
 
