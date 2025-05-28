@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "0eed5368581a74329b8f951970d6fdf1"
-application_url = "https://chrome-commissions-ongoing-routing.trycloudflare.com"
+application_url = "https://parish-much-locale-surplus.trycloudflare.com"
 embedded = true
 name = "countx"
 handle = "countx"
@@ -27,9 +27,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://chrome-commissions-ongoing-routing.trycloudflare.com/auth/callback",
-  "https://chrome-commissions-ongoing-routing.trycloudflare.com/auth/shopify/callback",
-  "https://chrome-commissions-ongoing-routing.trycloudflare.com/api/auth/callback"
+  "https://parish-much-locale-surplus.trycloudflare.com/auth/callback",
+  "https://parish-much-locale-surplus.trycloudflare.com/auth/shopify/callback",
+  "https://parish-much-locale-surplus.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

@@ -26,16 +26,15 @@ export function useCountdownTimer(selectedDate, selectedHour, selectedMinute, se
 
       if (timeDifference <= 0) {
         clearInterval(newIntervalId);
-        setRemainingTime("Time's up!");
+        setRemainingTime("Choose a future time");
       } else {
-        const hoursLeft = Math.floor(timeDifference / (1000 * 60 * 60));
-        const minutesLeft = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-        const secondsLeft = Math.floor((timeDifference % (1000 * 60)) / 1000);
+        const daysLeft = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+        const hoursLeft = Math.floor((timeDifference / (1000 * 60 * 60)) % 24);
+        const minutesLeft = Math.floor((timeDifference / (1000 * 60)) % 60);
+        const secondsLeft = Math.floor((timeDifference / 1000) % 60);
 
         setRemainingTime(
-          `${hoursLeft}:${minutesLeft < 10 ? `0${minutesLeft}` : minutesLeft}:${
-            secondsLeft < 10 ? `0${secondsLeft}` : secondsLeft
-          }`
+          `${daysLeft}d ${hoursLeft < 10 ? `0${hoursLeft}` : hoursLeft}h ${minutesLeft < 10 ? `0${minutesLeft}` : minutesLeft}m ${secondsLeft < 10 ? `0${secondsLeft}` : secondsLeft}s`
         );
       }
     }, 1000);

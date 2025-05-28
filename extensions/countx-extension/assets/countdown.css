@@ -1,0 +1,65 @@
+  .countdown-widget {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 3rem;
+    min-height: 64px
+  }
+  
+  .countdown-text {
+    font-size: 2rem;
+    font-weight: bold;
+  }
+  
+  .countdown-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .time-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    line-height: 1; /* Add this */
+    margin: 0;       /* Add this */
+  }
+  
+  .label {
+    font-size: 0.875rem;
+    color: #555;
+    line-height: 1.1; /* Optional: controls label spacing */
+    margin: 0;        /* Add this to reduce space */
+  }
+
+  .colon {
+    font-size: 2.5rem;         /* Match .number font size */
+    line-height: 1;
+    display: flex;
+    align-items: flex-end;     /* Aligns to the number baseline */
+    justify-content: center;
+    padding-bottom: 1rem;    /* Fine-tune vertical alignment */
+  }
+  
+  @media (max-width: 600px) {
+    .number {
+      font-size: 2rem;
+    }
+  
+    .label {
+      font-size: 0.75rem;
+    }
+  
+    .countdown-text {
+      font-size: 1.2rem;
+    }
+  }
+  
