@@ -5,13 +5,13 @@ import {
   Layout,
   BlockStack,
 } from "@shopify/polaris";
-
-
+import { useLoaderData } from "@remix-run/react";
 import { TitleBar } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import CountdownTemplate from '../components/countdown-template.jsx';
 import { json } from "@remix-run/node";
 import { CountdownForm } from "../components/countdown-form.jsx";
+import { getCountdown, createCountdown, updateCountdown } from "../controllers/countdown.server";
 
 export const loader = async ({ request }) => {
   const session = await authenticate.admin(request);
@@ -20,19 +20,9 @@ export const loader = async ({ request }) => {
   }
 
   const shop = session.session.shop;
-
-  try {
-    // Fetch the countdown associated with the shop
-    const countdown = await prisma.countdown.findFirst({
-      where: { shop },
-    });
-
-    console.log("📌 Countdown fetched:", countdown);
-    return json({ countdown });
-  } catch (error) {
-    console.error("❌ Error fetching countdown:", error);
-    return json({ countdown: null, error: error.message });
-  }
+  const result = await getCountdown(shop);
+  
+  return json(result);
 };
 
 export const action = async ({ request }) => {
@@ -48,36 +38,28 @@ export const action = async ({ request }) => {
   const text = formData.get("text");
   const date = formData.get("date");
   const time = formData.get("time");
-  const dateObject = new Date(date)
+  const color = formData.get("color");
+  const dateObject = new Date(date);
+  const id = formData.get("id");
 
-  // Used as a controller to call the server logic 
-  const { saveCounterToDatabase } = await import("../api/save-counter.server.js");
+  const result = id 
+    ? await updateCountdown({ id, text, date: dateObject, time, color, shop })
+    : await createCountdown({ text, date: dateObject, time, color, shop });
 
-  await saveCounterToDatabase({ text, dateObject, time, shop });
-
-  // await saveCounterToDatabase({text, dateObject, time, shop});
-  
-  return { success: true };
+  return json(result);
 };
 
-
 export default function Index() {
-  // const { shop, countdown } = useLoaderData();  // Destructure shop from loader data
+  const { countdown } = useLoaderData();
   
-  // const shopify = useAppBridge();
-  
-
-
-  // const [metafield, setMetafield] = useState("Raz")
-  // const handleChangeMetafield = useCallback((newMetafield) => setMetafield(newMetafield),[])
-
   const {
     text, setText,
     selectedDate, setSelectedDate,
     selectedHour, setSelectedHour,
     selectedMinute, setSelectedMinute,
     selectedPeriod, setSelectedPeriod,
-  } = useCountdownFormState();
+    selectedColor, setSelectedColor,
+  } = useCountdownFormState(countdown);
   
   const remainingTime = useCountdownTimer(
     selectedDate,
@@ -86,7 +68,6 @@ export default function Index() {
     selectedPeriod
   );
   
-  
   return (
     <Page>
       <TitleBar title="Countdown timer" />
@@ -94,7 +75,6 @@ export default function Index() {
       <BlockStack gap="500">
         <Layout>
           <Layout.Section>
-            
             <CountdownForm 
               text={text}
               setText={setText}
@@ -106,22 +86,16 @@ export default function Index() {
               setSelectedMinute={setSelectedMinute}
               selectedPeriod={selectedPeriod}
               setSelectedPeriod={setSelectedPeriod}
+              selectedColor={selectedColor}
+              setSelectedColor={setSelectedColor}
+              countdown={countdown}
             />
 
             <CountdownTemplate 
               text={text} 
-              remainingTime={remainingTime} 
+              remainingTime={remainingTime}
+              color={selectedColor}
             />
-
-          {/* <Card>
-            <Text>Metafield value</Text>
-            <TextField 
-              value={metafield}
-              onChange={handleChangeMetafield}
-              >
-            </TextField>
-          </Card> */}
-
           </Layout.Section>
         </Layout>
       </BlockStack>

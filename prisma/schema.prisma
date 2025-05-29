@@ -18,6 +18,7 @@ model Countdown {
   text          String
   date          DateTime
   time          String
+  color         String   @default("#000000")
   createdAt     DateTime @default(now())
   shop          String
 }

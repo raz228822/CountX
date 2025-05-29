@@ -18,6 +18,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const countdown = data.countdown;
   textEl.textContent = countdown?.text || "No available countdown..";
+  
+  // Apply color to text
+  if (countdown?.color) {
+    textEl.style.color = countdown.color;
+  }
 
   // Inject time unit containers into displayEl
   displayEl.innerHTML = `
@@ -41,6 +46,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       <div class="label">seconds</div>
     </div>
   `;
+
+  // Apply colors to numbers and labels
+  if (countdown?.color) {
+    const numbers = document.querySelectorAll('.number');
+    const labels = document.querySelectorAll('.label');
+    const colons = document.querySelectorAll('.colon');
+    
+    numbers.forEach(num => num.style.color = countdown.color);
+    labels.forEach(label => label.style.color = countdown.color + '99'); // 60% opacity
+    colons.forEach(colon => colon.style.color = countdown.color);
+  }
 
   if (countdown?.date && countdown?.time) {
     const dateStr = new Date(countdown.date).toISOString().split("T")[0];

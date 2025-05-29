@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 
 export function useCountdownTimer(selectedDate, selectedHour, selectedMinute, selectedPeriod) {
-  const [remainingTime, setRemainingTime] = useState(null);
-  const [intervalId, setIntervalId] = useState(null);
+  const [timeUnits, setTimeUnits] = useState({
+    days: "00",
+    hours: "00",
+    minutes: "00",
+    seconds: "00",
+    isExpired: false
+  });
 
   useEffect(() => {
-    if (intervalId) {
-      clearInterval(intervalId);
-    }
+    if (!selectedDate) return;
 
     const targetDate = new Date(selectedDate);
     let hours = parseInt(selectedHour);
@@ -20,29 +23,45 @@ export function useCountdownTimer(selectedDate, selectedHour, selectedMinute, se
 
     targetDate.setHours(hours, parseInt(selectedMinute), 0, 0);
 
-    const newIntervalId = setInterval(() => {
+    const updateDisplay = () => {
       const currentTime = new Date();
       const timeDifference = targetDate - currentTime;
 
       if (timeDifference <= 0) {
-        clearInterval(newIntervalId);
-        setRemainingTime("Choose a future time");
-      } else {
-        const daysLeft = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-        const hoursLeft = Math.floor((timeDifference / (1000 * 60 * 60)) % 24);
-        const minutesLeft = Math.floor((timeDifference / (1000 * 60)) % 60);
-        const secondsLeft = Math.floor((timeDifference / 1000) % 60);
+        setTimeUnits(prev => ({ ...prev, isExpired: true }));
+        return false; // Return false to indicate we should stop the interval
+      }
 
-        setRemainingTime(
-          `${daysLeft}d ${hoursLeft < 10 ? `0${hoursLeft}` : hoursLeft}h ${minutesLeft < 10 ? `0${minutesLeft}` : minutesLeft}m ${secondsLeft < 10 ? `0${secondsLeft}` : secondsLeft}s`
-        );
+      const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((timeDifference / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((timeDifference / (1000 * 60)) % 60);
+      const seconds = Math.floor((timeDifference / 1000) % 60);
+
+      setTimeUnits({
+        days: String(days).padStart(2, "0"),
+        hours: String(hours).padStart(2, "0"),
+        minutes: String(minutes).padStart(2, "0"),
+        seconds: String(seconds).padStart(2, "0"),
+        isExpired: false
+      });
+
+      return true; // Return true to continue the interval
+    };
+
+    // Initial update
+    const shouldContinue = updateDisplay();
+    if (!shouldContinue) return;
+
+    // Set up interval
+    const intervalId = setInterval(() => {
+      const shouldContinue = updateDisplay();
+      if (!shouldContinue) {
+        clearInterval(intervalId);
       }
     }, 1000);
 
-    setIntervalId(newIntervalId);
-
-    return () => clearInterval(newIntervalId);
+    return () => clearInterval(intervalId);
   }, [selectedDate, selectedHour, selectedMinute, selectedPeriod]);
 
-  return remainingTime;
+  return timeUnits;
 }

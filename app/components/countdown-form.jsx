@@ -1,5 +1,5 @@
 import { useFetcher } from "@remix-run/react";
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { Toast } from "@shopify/polaris";
 
 import {
@@ -14,6 +14,7 @@ import {
     Popover,
     Icon,
     Select,
+    ColorPicker,
 } from "@shopify/polaris";
 
 import {
@@ -30,7 +31,10 @@ export const CountdownForm = ({
     selectedMinute,
     setSelectedMinute,
     selectedPeriod,
-    setSelectedPeriod
+    setSelectedPeriod,
+    selectedColor,
+    setSelectedColor,
+    countdown
   }) => {
 
     const fetcher = useFetcher();
@@ -40,24 +44,117 @@ export const CountdownForm = ({
 
     const [successToastActive, setSuccessToastActive] = useState(false);
     const [errorToastActive, setErrorToastActive] = useState(false);
+    const [toastMessage, setToastMessage] = useState("");
+    const [colorPickerActive, setColorPickerActive] = useState(false);
+    const lastActionRef = useRef(null);
 
-    const toggleSuccessToastActive = useCallback(() => setSuccessToastActive((active) => !active), []);
+    const toggleSuccessToastActive = useCallback(() => {
+        setSuccessToastActive(false);
+        setToastMessage("");
+    }, []);
+    
     const toggleErrorToastActive = useCallback(() => setErrorToastActive((active) => !active), []);
+    const toggleColorPicker = useCallback(() => setColorPickerActive((active) => !active), []);
     
     const successToastMarkup = successToastActive ? (
-        <Toast content="Countdown created!" onDismiss={toggleSuccessToastActive} />
-      ) : null;
+        <Toast content={toastMessage} onDismiss={toggleSuccessToastActive} />
+    ) : null;
 
     const errorToastMarkup = errorToastActive ? (
-    <Toast content="Please enter text for the countdown!" onDismiss={toggleErrorToastActive} error />
+        <Toast content="Please enter text for the countdown!" onDismiss={toggleErrorToastActive} error />
     ) : null;
   
     // Date & Time picker handlers
-    const handleChange = useCallback((newText) => setText(newText),[])
+    const handleChange = useCallback((newText) => setText(newText),[setText])
     const handleHourChange = (value) => setSelectedHour(value);
     const handleMinuteChange = (value) => setSelectedMinute(value);
     const handlePeriodChange = (value) => setSelectedPeriod(value);
+    const handleColorChange = useCallback(
+      (color) => {
+        console.log('Color change:', color);
+        const { hue, saturation, brightness } = color;
+        
+        // Convert HSB to RGB
+        const h = hue / 360;
+        const s = saturation;
+        const v = brightness;
+        
+        let r, g, b;
+        
+        const i = Math.floor(h * 6);
+        const f = h * 6 - i;
+        const p = v * (1 - s);
+        const q = v * (1 - f * s);
+        const t = v * (1 - (1 - f) * s);
+        
+        switch (i % 6) {
+          case 0: r = v; g = t; b = p; break;
+          case 1: r = q; g = v; b = p; break;
+          case 2: r = p; g = v; b = t; break;
+          case 3: r = p; g = q; b = v; break;
+          case 4: r = t; g = p; b = v; break;
+          case 5: r = v; g = p; b = q; break;
+        }
+        
+        // Convert to hex
+        const toHex = (n) => {
+          const hex = Math.round(n * 255).toString(16);
+          return hex.length === 1 ? '0' + hex : hex;
+        };
+        
+        const hexColor = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+        setSelectedColor(hexColor);
+      },
+      [setSelectedColor]
+    );
 
+    const [hsbColor, setHsbColor] = useState(() => ({
+      hue: 0,
+      brightness: 0,
+      saturation: 0,
+      alpha: 1
+    }));
+
+    // Convert hex to HSB
+    const hexToHsb = useCallback((hex) => {
+      // Remove the hash if present
+      hex = hex.replace(/^#/, '');
+      
+      // Parse the hex values
+      const r = parseInt(hex.slice(0, 2), 16) / 255;
+      const g = parseInt(hex.slice(2, 4), 16) / 255;
+      const b = parseInt(hex.slice(4, 6), 16) / 255;
+      
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const d = max - min;
+      
+      let h, s, v = max;
+      
+      s = max === 0 ? 0 : d / max;
+      
+      if (max === min) {
+        h = 0;
+      } else {
+        switch (max) {
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+          case g: h = (b - r) / d + 2; break;
+          case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+      }
+      
+      return {
+        hue: h * 360,
+        saturation: s,
+        brightness: v,
+        alpha: 1
+      };
+    }, []);
+
+    const colorPickerColor = useMemo(() => {
+      return hexToHsb(selectedColor || '#000000');
+    }, [selectedColor, hexToHsb]);
 
     const [visible, setVisible] = useState(false);
     
@@ -97,10 +194,7 @@ export const CountdownForm = ({
         }
     }, [selectedDate]);
 
-    
-
     const togglePopover = useCallback(() => setPopoverActive((active) => !active), []);
-    
 
     const hours = Array.from({ length: 12 }, (_, i) => ({ label: `${i + 1}`, value: `${i + 1}` }));
     const minutes = Array.from({ length: 12 }, (_, i) => ({ label: i*5 < 10 ? `0${i*5}` : `${i*5}`, value: i*5 < 10 ? `0${i*5}` : `${i*5}` }));
@@ -109,36 +203,26 @@ export const CountdownForm = ({
         { label: "PM", value: "PM" },
     ];
 
-    const resetState = () => {
-        setText('');
-        setSelectedDate(() => {
-        const now = new Date();
-        now.setDate(now.getDate() + 1); // Move to tomorrow
-        return now;
-        });
-        setSelectedHour("12");
-        setSelectedMinute("00");
-        setSelectedPeriod("AM");
-    };
-
     useEffect(() => {
-        if (fetcher.data?.success) {
-            resetState();  // Reset state after successful form submission
+        const formData = fetcher.formData;
+        if (fetcher.data?.success && lastActionRef.current !== fetcher.data.countdown.id) {
+            const isCreate = !formData?.get('id');
+            setToastMessage(isCreate ? "Countdown created!" : "Countdown updated!");
             setSuccessToastActive(true);
+            lastActionRef.current = fetcher.data.countdown.id;
         }
-    }, [fetcher.data]);  // Trigger on successful response
+    }, [fetcher.data?.success]);
 
     const handleSubmit = async (event) => {
-        event.preventDefault(); // Prevent the default form submission
+        event.preventDefault();
     
         if (!text.trim()) {
-          toggleErrorToastActive(); // Show error toast if no text entered
-          return;
+            toggleErrorToastActive();
+            return;
         }
     
-        // Proceed with the form submission if text is valid
         fetcher.submit(event.target);
-      };
+    };
 
     return (
         <>
@@ -146,11 +230,13 @@ export const CountdownForm = ({
             <Card>
                 <fetcher.Form method="post" onSubmit={handleSubmit}>
                 <BlockStack gap="500">
+                    {countdown && (
+                        <input type="hidden" name="id" value={countdown.id} />
+                    )}
 
-                    {/* Countdown text */}
                     <BlockStack inlineAlign="start" gap="200">
                     <Text as="h2" variant="headingMd">
-                        Enter Text
+                        {countdown ? "Edit Countdown" : "Create Countdown"}
                     </Text>
                     <Box width="500px">
                         <TextField
@@ -238,9 +324,54 @@ export const CountdownForm = ({
                     </Box>
                     </BlockStack>
 
-                    {/* Hidden input to store selected date and time */}
+                    <BlockStack inlineAlign="start" gap="200">
+                      <Text as="h4" variant="headingMd">Choose Color</Text>
+                      <Box width="240px">
+                        <Popover
+                          active={colorPickerActive}
+                          autofocusTarget="none"
+                          preferredAlignment="left"
+                          preferredPosition="below"
+                          onClose={toggleColorPicker}
+                          activator={
+                            <TextField
+                              label="Countdown color"
+                              value={selectedColor}
+                              onFocus={toggleColorPicker}
+                              autoComplete="off"
+                              prefix={
+                                <div
+                                  style={{
+                                    width: "20px",
+                                    height: "20px",
+                                    backgroundColor: selectedColor,
+                                    borderRadius: "2px",
+                                    border: "1px solid #ddd"
+                                  }}
+                                />
+                              }
+                            />
+                          }
+                        >
+                          <Card>
+                            <Box padding="200">
+                              <ColorPicker 
+                                onChange={(color) => {
+                                  setHsbColor(color);
+                                  handleColorChange(color);
+                                }}
+                                color={hsbColor}
+                                allowAlpha={false}
+                              />
+                            </Box>
+                          </Card>
+                        </Popover>
+                      </Box>
+                    </BlockStack>
+
                     <input type="hidden" name="date" value={formattedDate} />
                     <input type="hidden" name="time" value={`${selectedHour}:${selectedMinute} ${selectedPeriod}`} />
+                    <input type="hidden" name="color" value={selectedColor} />
                     
                     <BlockStack inlineAlign="start" gap="200">
                     <Button
@@ -248,7 +379,7 @@ export const CountdownForm = ({
                         submit
                         variant="primary"
                     >
-                        Create a Countdown
+                        {countdown ? "Update Countdown" : "Create Countdown"}
                     </Button>
                     </BlockStack>
 

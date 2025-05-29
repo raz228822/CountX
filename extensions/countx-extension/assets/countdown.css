@@ -9,7 +9,7 @@
   }
   
   .countdown-text {
-    font-size: 2rem;
+    font-size: 2.3rem;
     font-weight: bold;
   }
   
@@ -34,7 +34,7 @@
   }
   
   .label {
-    font-size: 0.875rem;
+    font-size: 1.3rem;
     color: #555;
     line-height: 1.1; /* Optional: controls label spacing */
     margin: 0;        /* Add this to reduce space */
@@ -50,16 +50,27 @@
   }
   
   @media (max-width: 600px) {
+    .countdown-widget {
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+  
+    .countdown-text {
+      font-size: 2.3rem;
+    }
+  
     .number {
       font-size: 2rem;
     }
   
     .label {
-      font-size: 0.75rem;
+      font-size: 0.875rem;
     }
   
-    .countdown-text {
-      font-size: 1.2rem;
+    .colon {
+      font-size: 2rem;
     }
   }
   
