@@ -46,7 +46,6 @@ export const CountdownForm = ({
     const [errorToastActive, setErrorToastActive] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
     const [colorPickerActive, setColorPickerActive] = useState(false);
-    const lastActionRef = useRef(null);
 
     const toggleSuccessToastActive = useCallback(() => {
         setSuccessToastActive(false);
@@ -57,7 +56,7 @@ export const CountdownForm = ({
     const toggleColorPicker = useCallback(() => setColorPickerActive((active) => !active), []);
     
     const successToastMarkup = successToastActive ? (
-        <Toast content={toastMessage} onDismiss={toggleSuccessToastActive} />
+        <Toast content={toastMessage} onDismiss={toggleSuccessToastActive} duration={3000} />
     ) : null;
 
     const errorToastMarkup = errorToastActive ? (
@@ -203,15 +202,9 @@ export const CountdownForm = ({
         { label: "PM", value: "PM" },
     ];
 
-    useEffect(() => {
-        const formData = fetcher.formData;
-        if (fetcher.data?.success && lastActionRef.current !== fetcher.data.countdown.id) {
-            const isCreate = !formData?.get('id');
-            setToastMessage(isCreate ? "Countdown created!" : "Countdown updated!");
-            setSuccessToastActive(true);
-            lastActionRef.current = fetcher.data.countdown.id;
-        }
-    }, [fetcher.data?.success]);
+    const [prevFetcherState, setPrevFetcherState] = useState(fetcher.state);
+
+    const [isUpdate, setIsUpdate] = useState(false);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -220,9 +213,20 @@ export const CountdownForm = ({
             toggleErrorToastActive();
             return;
         }
-    
+
+        const formData = new FormData(event.target);
+        setIsUpdate(!!formData.get('id'));
         fetcher.submit(event.target);
     };
+
+    useEffect(() => {
+        // Only show toast when transitioning from loading/submitting to idle AND we have success data
+        if (prevFetcherState !== 'idle' && fetcher.state === 'idle' && fetcher.data?.success) {
+            setToastMessage(isUpdate ? "Countdown updated!" : "Countdown created!");
+            setSuccessToastActive(true);
+        }
+        setPrevFetcherState(fetcher.state);
+    }, [fetcher.state, fetcher.data, isUpdate]);
 
     return (
         <>

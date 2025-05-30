@@ -42,7 +42,7 @@ const CountdownTemplate = ({
         
         {isExpired ? (
           <div style={{ color }}>
-            <Text variant="headingMd" as="h3" alignment="center">
+            <Text variant="headingXl" as="h3" alignment="center">
               Expired!
             </Text>
           </div>
