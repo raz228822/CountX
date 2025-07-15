@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "0eed5368581a74329b8f951970d6fdf1"
-application_url = "https://discussing-barnes-spyware-fl.trycloudflare.com"
+application_url = "https://min-thou-dynamic-hazards.trycloudflare.com"
 embedded = true
 name = "countx"
 handle = "countx"
@@ -27,9 +27,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://discussing-barnes-spyware-fl.trycloudflare.com/auth/callback",
-  "https://discussing-barnes-spyware-fl.trycloudflare.com/auth/shopify/callback",
-  "https://discussing-barnes-spyware-fl.trycloudflare.com/api/auth/callback"
+  "https://min-thou-dynamic-hazards.trycloudflare.com/auth/callback",
+  "https://min-thou-dynamic-hazards.trycloudflare.com/auth/shopify/callback",
+  "https://min-thou-dynamic-hazards.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
